@@ -1,18 +1,18 @@
 import "dotenv/config";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { google } from "@ai-sdk/google";
 import { createContext } from "@my-better-t-app/api/context";
 import { appRouter } from "@my-better-t-app/api/routers/index";
+import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import cors from "cors";
 import express from "express";
-import { streamText, type UIMessage, convertToModelMessages } from "ai";
-import { google } from "@ai-sdk/google";
 
 const app = express();
 
 app.use(
 	cors({
 		origin: process.env.CORS_ORIGIN || "",
-		methods: ["GET", "POST", "OPTIONS"],
+		methods: ["GET", "POST", "OPTIONS", "PUT"],
 	}),
 );
 

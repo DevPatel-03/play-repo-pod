@@ -94,6 +94,7 @@
       "devDependencies": {
         "@my-better-t-app/config": "workspace:*",
         "@types/express": "catalog:",
+        "@types/pg": "^8.15.6",
       },
       "peerDependencies": {
         "typescript": "^5",
