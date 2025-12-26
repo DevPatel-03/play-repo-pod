@@ -59,6 +59,10 @@ export const users = pgTable("users", {
 	...baseDeleteColumns,
 });
 
+export const userRelations = relations(users, ({ many }) => ({
+	uploadDocuments: many(uploadDocuments),
+}));
+
 // Companies table
 export const companies = pgTable("companies", {
 	companyId: uuid("company_id").primaryKey().defaultRandom(),
@@ -66,6 +70,11 @@ export const companies = pgTable("companies", {
 	...baseTableColumns,
 	...baseDeleteColumns,
 });
+
+export const companyRelations = relations(companies, ({ many }) => ({
+	branches: many(branches),
+	uploadDocuments: many(uploadDocuments),
+}));
 
 // Branches table
 export const branches = pgTable("branches", {
@@ -77,6 +86,14 @@ export const branches = pgTable("branches", {
 	...baseTableColumns,
 	...baseDeleteColumns,
 });
+
+export const branchRelations = relations(branches, ({ one, many }) => ({
+	company: one(companies, {
+		fields: [branches.companyId],
+		references: [companies.companyId],
+	}),
+	uploadDocuments: many(uploadDocuments),
+}));
 
 export const uploadDocuments = pgTable(
 	"upload_documents",

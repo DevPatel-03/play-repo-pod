@@ -69,6 +69,7 @@ Complete the `extractPODDataFromPDF` function in `packages/api/src/services/ocr-
 ```typescript
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PDFDocument } from "pdf-lib";
+import { randomUUID } from "crypto";
 
 export async function extractPODDataFromPDF(
   documentId: string,
@@ -148,7 +149,7 @@ Return as JSON with this structure:
     const usage = response.usageMetadata;
     if (usage) {
       await saveTokenUsage(documentId, {
-        requestId: crypto.randomUUID(),
+        requestId: randomUUID(),
         inputTokens: usage.promptTokenCount || 0,
         candidatesTokens: usage.candidatesTokenCount || 0,
         outputTokens: usage.candidatesTokenCount || 0,
@@ -158,7 +159,7 @@ Return as JSON with this structure:
     }
     
     // 9. Update status to COMPLETED
-    await updateDocumentStatus(documentId, "COMPLETED", crypto.randomUUID(), db);
+    await updateDocumentStatus(documentId, "COMPLETED", randomUUID(), db);
     
     return [pageData];
     
