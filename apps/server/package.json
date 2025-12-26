@@ -18,13 +18,17 @@
 		"dotenv": "catalog:",
 		"zod": "^4.1.11",
 		"@my-better-t-app/api": "workspace:*",
-		"@my-better-t-app/db": "workspace:*"
+		"@my-better-t-app/db": "workspace:*",
+		"pdf-parse": "catalog:",
+		"pdf-lib": "catalog:",
+		"multer": "^1.4.5-lts.1"
 	},
 	"devDependencies": {
 		"typescript": "^5.8.2",
 		"@types/express": "catalog:",
 		"@types/cors": "^2.8.17",
 		"@types/bun": "^1.2.6",
+		"@types/multer": "^1.4.12",
 		"tsdown": "^0.16.5",
 		"@my-better-t-app/config": "workspace:*"
 	}

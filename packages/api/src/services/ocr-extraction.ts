@@ -1,46 +1,8 @@
 /**
- * OCR Extraction Service using Google Gemini 2.0 Flash
+ * OCR Extraction Service using Google Gemini 2.0 Flash Preview
  * 
  * This service handles PDF document processing and OCR extraction for proof of delivery (POD) receipts.
- * 
- * Research Notes & Best Practices:
- * 
- * 1. GOOGLE GENERATIVE AI PACKAGE OPTIONS:
- *    - @google/generative-ai: Official Google AI SDK (recommended)
- *    - @ai-sdk/google: Vercel AI SDK wrapper (already in project)
- *    
- * 2. GEMINI 2.0 FLASH MODEL:
- *    - Model ID: "gemini-2.0-flash-exp" or "gemini-2.0-flash"
- *    - Excellent for OCR and document understanding
- *    - Supports multimodal inputs (text + images)
- *    - Fast processing with good accuracy for handwritten text
- *    
- * 3. FILE HANDLING APPROACH:
- *    - Option A: Convert PDF to images (png/jpeg) then to base64
- *    - Option B: Direct PDF upload via File API (if supported)
- *    - Recommendation: Convert to images for better control
- *    - Libraries: pdf-parse, pdfjs-dist, or pdf-lib for PDF processing
- *    
- * 4. PROMPT ENGINEERING FOR HANDWRITTEN OCR:
- *    - Be explicit about handwritten text recognition
- *    - Request structured JSON output
- *    - Specify field names and expected data types
- *    - Ask model to flag uncertain fields
- *    
- * 5. TOKEN USAGE TRACKING:
- *    - Gemini API returns usage metadata in response
- *    - Track: inputTokens, outputTokens, totalTokens
- *    - Also available: cachedContentTokenCount for context caching
- *    
- * 6. ERROR HANDLING:
- *    - Handle API rate limits
- *    - Retry logic for transient failures
- *    - Fallback for unclear text regions
- *    
- * 7. MULTI-PAGE PDF HANDLING:
- *    - Process each page separately
- *    - Store results per page in extracted_page_data table
- *    - Track page numbers for reference
+ * Uses Vercel AI SDK (@ai-sdk/google) for streamlined integration with Gemini models.
  */
 
 import type { DB } from "@my-better-t-app/db";
@@ -51,37 +13,25 @@ import {
 	type DocumentExtactionStatusEnumType,
 } from "@my-better-t-app/db/schema";
 import { eq } from "drizzle-orm";
+import { google } from "@ai-sdk/google";
+import { generateObject } from "ai";
+import { z } from "zod";
+import pdf from "pdf-parse";
 
 /**
- * TODO: Implement OCR extraction logic
- * 
- * Steps to implement:
- * 1. Install @google/generative-ai package
- * 2. Configure Gemini 2.0 Flash model with API key
- * 3. Implement PDF to image conversion
- * 4. Create extraction prompt for POD receipt data
- * 5. Process each page and extract structured data
- * 6. Save extracted data to database
- * 7. Track token usage for billing/monitoring
- * 
- * Example Prompt Structure:
- * ```
- * You are an expert at reading handwritten delivery receipts.
- * Analyze this proof of delivery (POD) receipt image and extract the following information:
- * 
- * - Container Numbers (array of strings)
- * - Container Sizes (array of strings, e.g., "20ft", "40ft")
- * - Full/Empty Status (array of "FULL" or "EMPTY")
- * - Date (format: YYYY-MM-DD)
- * - Instruction Number
- * - Vehicle Number
- * - Collected From (location)
- * - Delivered To (location)
- * 
- * For any fields you're uncertain about, add them to an "unsureFields" array.
- * Return the data as a JSON object.
- * ```
+ * Schema for extracted POD data validation
  */
+const ExtractedPODSchema = z.object({
+	containerNumbers: z.array(z.string().nullable()),
+	containerSizes: z.array(z.string().nullable()),
+	fullEmptyStatuses: z.array(z.enum(["FULL", "EMPTY"]).nullable()),
+	pageDate: z.string().optional(),
+	instructionNumber: z.string().optional(),
+	vehicleNumber: z.string().optional(),
+	collectedFrom: z.string().optional(),
+	deliveredTo: z.string().optional(),
+	unsureFields: z.array(z.string()).default([]),
+});
 
 export interface ExtractedPODData {
 	pageNumber: number;
@@ -109,7 +59,7 @@ export interface TokenUsageData {
 }
 
 /**
- * Process a PDF document and extract POD data using Gemini 2.0 Flash
+ * Process a PDF document and extract POD data using Gemini 2.0 Flash Preview
  * 
  * @param documentId - The ID of the document to process
  * @param pdfBuffer - The PDF file buffer (not stored, only processed in memory)
@@ -121,13 +71,168 @@ export async function extractPODDataFromPDF(
 	pdfBuffer: Buffer,
 	db: DB,
 ): Promise<ExtractedPODData[]> {
-	// TODO: Implement extraction logic
-	// 1. Update document status to PROCESSING
-	// 2. Convert PDF to images
-	// 3. For each page:
-	//    a. Convert to base64
-	//    b. Call Gemini API with extraction prompt
-	//    c. Parse response
+	const startTime = Date.now();
+	const extractionId = crypto.randomUUID();
+
+	try {
+		// Update document status to PROCESSING
+		await updateDocumentStatus(documentId, "PROCESSING", extractionId, db);
+
+		// Parse PDF to get text and metadata
+		const pdfData = await pdf(pdfBuffer);
+		const numPages = pdfData.numpages;
+
+		console.log(`Processing ${numPages} pages for document ${documentId}`);
+
+		const extractedPages: ExtractedPODData[] = [];
+
+		// Process each page separately for better granularity
+		for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+			try {
+				const pageData = await extractPageData(
+					pdfBuffer,
+					pageNum,
+					documentId,
+					db,
+					startTime,
+				);
+				extractedPages.push(pageData);
+			} catch (pageError) {
+				console.error(`Error processing page ${pageNum}:`, pageError);
+				// Continue with other pages even if one fails
+				extractedPages.push({
+					pageNumber: pageNum,
+					containerNumbers: [],
+					containerSizes: [],
+					fullEmptyStatuses: [],
+					unsureFields: ["*all*"],
+				});
+			}
+		}
+
+		// Update status to COMPLETED
+		await updateDocumentStatus(documentId, "COMPLETED", extractionId, db);
+
+		return extractedPages;
+	} catch (error) {
+		console.error("OCR extraction failed:", error);
+		await updateDocumentStatus(documentId, "FAILED", extractionId, db);
+		throw error;
+	}
+}
+
+/**
+ * Extract data from a single PDF page using Gemini 2.0 Flash Preview
+ */
+async function extractPageData(
+	pdfBuffer: Buffer,
+	pageNumber: number,
+	documentId: string,
+	db: DB,
+	startTime: number,
+): Promise<ExtractedPODData> {
+	const requestId = crypto.randomUUID();
+
+	// Convert PDF to base64 for API
+	const base64Data = pdfBuffer.toString("base64");
+
+	// Use Gemini 2.0 Flash Preview for optimal OCR performance
+	const model = google("gemini-2.0-flash-exp");
+
+	// Comprehensive prompt for handwritten POD receipt extraction
+	const prompt = `You are an expert at reading handwritten proof of delivery (POD) receipts from logistics and shipping companies.
+
+Analyze this proof of delivery receipt document (page ${pageNumber}) and extract the following information with high accuracy:
+
+**CONTAINER INFORMATION (Arrays - all must have same length):**
+- Container Numbers: Full container IDs (e.g., "ABCD1234567", "EFGH8901234")
+- Container Sizes: Standard sizes (e.g., "20ft", "40ft", "20'", "40'", "20GP", "40HC")
+- Full/Empty Status: Must be either "FULL" or "EMPTY" for each container
+
+**DOCUMENT METADATA:**
+- Date: Delivery or document date in YYYY-MM-DD format
+- Instruction Number: Reference/tracking/instruction number
+- Vehicle Number: Truck/vehicle registration or identification
+
+**LOCATION INFORMATION:**
+- Collected From: Pickup location/depot/warehouse
+- Delivered To: Delivery destination/location
+
+**SPECIAL INSTRUCTIONS:**
+1. If text is UNCLEAR, SMUDGED, or you're UNCERTAIN about any field, add that field name to "unsureFields"
+2. If a value cannot be read at all, use null in the array
+3. Maintain array consistency - if you have 3 containers, you must have 3 sizes and 3 statuses
+4. Look for common handwritten variations: "FUL" = "FULL", "EMT"/"MT" = "EMPTY"
+5. Container numbers are typically alphanumeric, 11 characters
+6. Pay special attention to similar-looking characters: 0/O, 1/I, 5/S, 8/B
+
+Return structured data as JSON only.`;
+
+	try {
+		// Use generateObject for structured output with Gemini 2.0 Flash Preview
+		const result = await generateObject({
+			model,
+			schema: ExtractedPODSchema,
+			prompt,
+			messages: [
+				{
+					role: "user",
+					content: [
+						{
+							type: "text",
+							text: prompt,
+						},
+						{
+							type: "file",
+							data: base64Data,
+							mimeType: "application/pdf",
+						},
+					],
+				},
+			],
+		});
+
+		const extractedData = result.object;
+
+		// Prepare page data
+		const pageData: ExtractedPODData = {
+			pageNumber,
+			containerNumbers: extractedData.containerNumbers,
+			containerSizes: extractedData.containerSizes,
+			fullEmptyStatuses: extractedData.fullEmptyStatuses,
+			pageDate: extractedData.pageDate,
+			instructionNumber: extractedData.instructionNumber,
+			vehicleNumber: extractedData.vehicleNumber,
+			collectedFrom: extractedData.collectedFrom,
+			deliveredTo: extractedData.deliveredTo,
+			unsureFields: extractedData.unsureFields,
+		};
+
+		// Save extracted data to database
+		await saveExtractedPageData(documentId, pageData, db);
+
+		// Track token usage
+		if (result.usage) {
+			await saveTokenUsage(
+				documentId,
+				{
+					requestId,
+					inputTokens: result.usage.promptTokens || 0,
+					candidatesTokens: result.usage.completionTokens || 0,
+					outputTokens: result.usage.completionTokens || 0,
+					totalTokens: result.usage.totalTokens || 0,
+					durationMs: Date.now() - startTime,
+				},
+				db,
+			);
+		}
+
+		return pageData;
+	} catch (error) {
+		console.error(`Error extracting page ${pageNumber}:`, error);
+		throw error;
+	}
+}
 	//    d. Save to extracted_page_data table
 	// 4. Track token usage in document_token_usage table
 	// 5. Update document status to COMPLETED or FAILED
