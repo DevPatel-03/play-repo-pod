@@ -29,7 +29,7 @@ app.use(express.json());
 app.post("/ai", async (req, res) => {
 	const { messages = [] } = (req.body || {}) as { messages: UIMessage[] };
 	const result = streamText({
-		model: google("gemini-2.5-flash"),
+		model: google("gemini-3-pro-preview"),
 		messages: convertToModelMessages(messages),
 	});
 	result.pipeUIMessageStreamToResponse(res);

@@ -1,12 +1,12 @@
 import { db } from "@my-better-t-app/db";
-import { todo } from "@my-better-t-app/db/schema/todo";
+import { todo } from "@my-better-t-app/db/schema";
 import { eq } from "drizzle-orm";
 import z from "zod";
 import { publicProcedure, router } from "../index";
 
 export const todoRouter = router({
 	getAll: publicProcedure.query(async () => {
-		return await db.select().from(todo);
+		return await db.query.todo.findMany();
 	}),
 
 	create: publicProcedure
