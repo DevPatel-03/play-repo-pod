@@ -163,7 +163,7 @@ Analyze this proof of delivery receipt document (page ${pageNumber}) and extract
 2. If a value cannot be read at all, use null in the array
 3. Maintain array consistency - if you have 3 containers, you must have 3 sizes and 3 statuses
 4. Look for common handwritten variations: "FUL" = "FULL", "EMT"/"MT" = "EMPTY"
-5. Container numbers are typically alphanumeric, 11 characters
+5. Container numbers are typically alphanumeric (format may vary by region/company)
 6. Pay special attention to similar-looking characters: 0/O, 1/I, 5/S, 8/B
 
 Return structured data as JSON only.`;
@@ -232,18 +232,6 @@ Return structured data as JSON only.`;
 		console.error(`Error extracting page ${pageNumber}:`, error);
 		throw error;
 	}
-}
-	//    d. Save to extracted_page_data table
-	// 4. Track token usage in document_token_usage table
-	// 5. Update document status to COMPLETED or FAILED
-	
-	console.log(
-		`TODO: Implement OCR extraction for document ${documentId}`,
-		`Buffer size: ${pdfBuffer.length} bytes`,
-	);
-	
-	// Placeholder return
-	return [];
 }
 
 /**
