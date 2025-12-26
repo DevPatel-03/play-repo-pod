@@ -149,15 +149,13 @@ export const documentRouter = router({
 	 */
 	listDocuments: publicProcedure
 		.input(
-			z
-				.object({
-					limit: z.number().int().positive().max(100).default(20),
-					offset: z.number().int().nonnegative().default(0),
-				})
-				.optional(),
+			z.object({
+				limit: z.number().int().positive().max(100).default(20),
+				offset: z.number().int().nonnegative().default(0),
+			}).default({ limit: 20, offset: 0 }),
 		)
 		.query(async ({ input }) => {
-			const { limit = 20, offset = 0 } = input || {};
+			const { limit, offset } = input;
 
 			const documents = await db.query.uploadDocuments.findMany({
 				limit,

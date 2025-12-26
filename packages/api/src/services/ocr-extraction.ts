@@ -48,6 +48,7 @@ import {
 	documentTokenUsage,
 	extractedPageData,
 	uploadDocuments,
+	type DocumentExtactionStatusEnumType,
 } from "@my-better-t-app/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -190,7 +191,7 @@ export async function saveTokenUsage(
  */
 export async function updateDocumentStatus(
 	documentId: string,
-	status: "IDEAL" | "PROCESSING" | "COMPLETED" | "FAILED",
+	status: DocumentExtactionStatusEnumType,
 	extractionId?: string,
 	db?: DB,
 ): Promise<void> {
