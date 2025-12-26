@@ -1,4 +1,5 @@
 import { publicProcedure, router } from "../index";
+import { documentRouter } from "./document";
 import { todoRouter } from "./todo";
 
 export const appRouter = router({
@@ -6,5 +7,6 @@ export const appRouter = router({
 		return "OK";
 	}),
 	todo: todoRouter,
+	document: documentRouter,
 });
 export type AppRouter = typeof appRouter;
