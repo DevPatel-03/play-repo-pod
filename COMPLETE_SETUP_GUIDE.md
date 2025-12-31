@@ -407,8 +407,8 @@ PORT=3000
 
 ## 📚 Documentation
 
-- **Implementation Summary**: `IMPLEMENTATION_SUMMARY.md`
-- **Quick Start**: `QUICK_START_GUIDE.md`
+- **Implementation Notes**: `docs/GOOGLE_GENAI_INTEGRATION.md`
+- **Getting Started**: `README.md`
 - **Dependencies**: `DEPENDENCIES.md`
 - **Technical Details**: `docs/GOOGLE_GENAI_INTEGRATION.md`
 

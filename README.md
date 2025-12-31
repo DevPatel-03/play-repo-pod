@@ -7,7 +7,7 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 This project now includes **Google Gemini 2.0 Flash** integration for OCR extraction from proof of delivery (POD) receipt PDFs with handwritten text recognition.
 
 ### Quick Links
-- 📚 **[Quick Start Guide](QUICK_START_GUIDE.md)** - Step-by-step implementation guide
+- 📚 **[Complete Setup Guide](COMPLETE_SETUP_GUIDE.md)** - Step-by-step implementation guide
 - 📦 **[Dependencies Guide](DEPENDENCIES.md)** - Required packages and installation
 - 📖 **[Full Documentation](docs/GOOGLE_GENAI_INTEGRATION.md)** - Comprehensive integration guide
 

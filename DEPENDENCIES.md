@@ -307,7 +307,7 @@ bun add -w -d @types/multer @types/node
 
 ## Next Steps
 
-1. **Review** the QUICK_START_GUIDE.md for implementation steps
+1. **Review** the COMPLETE_SETUP_GUIDE.md for implementation steps
 2. **Install** required dependencies
 3. **Configure** environment variables
 4. **Implement** OCR extraction logic
