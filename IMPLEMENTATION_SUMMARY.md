@@ -117,7 +117,9 @@ document.getExtractionStatus({ documentId }) // Check processing status
 ### 1. Install Dependencies
 
 ```bash
-npm install @google/generative-ai pdf-lib multer @types/multer p-retry
+# From project root (workspace-aware)
+bun add -w @google/generative-ai pdf-lib multer p-retry
+bun add -w -d @types/multer
 ```
 
 ### 2. Environment Configuration
@@ -133,8 +135,8 @@ Get API key: https://makersuite.google.com/app/apikey
 ### 3. Database Migration
 
 ```bash
-npm run db:generate
-npm run db:push
+bun run db:generate
+bun run db:push
 ```
 
 ### 4. Implement OCR Extraction Logic

@@ -82,15 +82,16 @@ These are already in your project:
 
 ## Installation Commands
 
-### Install All at Once
+### Install All at Once (Bun workspace)
 ```bash
-cd /home/runner/work/play-repo-pod/play-repo-pod
-npm install @google/generative-ai pdf-lib multer @types/multer p-retry
+# From project root
+bun add -w @google/generative-ai pdf-lib multer p-retry
+bun add -w -d @types/multer
 ```
 
 ### Install Optional Packages
 ```bash
-npm install sharp bullmq
+bun add -w sharp bullmq
 ```
 
 ## Package Configuration
@@ -256,14 +257,15 @@ const model = genAI.getGenerativeModel({
 
 **Issue: `sharp` installation fails**
 ```bash
-# Solution: Install with legacy peer deps
+# Solution: Install with legacy peer deps (npm fallback)
+# If Bun fails to build, try using npm with legacy peer deps
 npm install sharp --legacy-peer-deps
 ```
 
 **Issue: TypeScript types not found**
 ```bash
 # Solution: Install type definitions
-npm install --save-dev @types/multer @types/node
+bun add -w -d @types/multer @types/node
 ```
 
 **Issue: ESM module errors**

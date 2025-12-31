@@ -307,23 +307,26 @@ input: {
 
 ### Required Packages
 
+From the project root, add packages using Bun (workspace-aware):
+
 ```bash
 # Google Generative AI SDK
-npm install @google/generative-ai
+bun add -w @google/generative-ai
 
 # PDF Processing (choose one)
-npm install pdf-lib
+bun add -w pdf-lib
 # OR
-npm install pdfjs-dist
+bun add -w pdfjs-dist
 
 # Image processing (optional, for optimization)
-npm install sharp
+bun add -w sharp
 
 # File upload handling
-npm install multer @types/multer
+bun add -w multer
+bun add -w -d @types/multer
 
 # Retry logic
-npm install p-retry
+bun add -w p-retry
 ```
 
 ### Environment Variables
@@ -338,8 +341,9 @@ DATABASE_URL=postgresql://...
 
 ### 1. Install Dependencies
 ```bash
-cd /home/runner/work/play-repo-pod/play-repo-pod
-npm install @google/generative-ai pdf-lib sharp multer p-retry
+# From project root (workspace-aware)
+bun add -w @google/generative-ai pdf-lib sharp multer p-retry
+bun add -w -d @types/multer
 ```
 
 ### 2. Implement OCR Service
@@ -368,8 +372,8 @@ app.post('/upload-document', upload.single('file'), async (req, res) => {
 ### 4. Update Database
 Run migrations:
 ```bash
-npm run db:generate
-npm run db:push
+bun run db:generate
+bun run db:push
 ```
 
 ### 5. Test Implementation

@@ -15,21 +15,17 @@ This guide will help you complete the implementation of the Google GenAI OCR int
 
 ### Step 1: Install Dependencies
 
-Add to your package.json or install directly:
+From the project root, add packages using Bun (workspace-aware):
 
 ```bash
-# Navigate to project root
-cd /home/runner/work/play-repo-pod/play-repo-pod
-
-# Install required packages
-npm install @google/generative-ai
-npm install pdf-lib
-npm install multer @types/multer
-npm install p-retry
-npm install sharp  # Optional, for image optimization
+# Install required packages (workspace-aware)
+bun add -w @google/generative-ai pdf-lib multer p-retry
+bun add -w -d @types/multer
+# Optional image optimization
+bun add -w sharp
 ```
 
-Or add to `apps/server/package.json`:
+Or add dependencies directly to `apps/server/package.json` (then run `bun install`):
 ```json
 {
   "dependencies": {
@@ -58,8 +54,8 @@ Get your API key from: https://makersuite.google.com/app/apikey
 
 Run database migrations:
 ```bash
-npm run db:generate
-npm run db:push
+bun run db:generate
+bun run db:push
 ```
 
 ### Step 4: Implement OCR Extraction Logic
@@ -255,7 +251,7 @@ const [user] = await db
 
 1. Start your server:
 ```bash
-npm run dev:server
+bun run dev:server
 ```
 
 2. Upload a test PDF:

@@ -56,6 +56,8 @@ bun run db:generate
 bun run db:push
 ```
 
+**Troubleshooting:** If you see an error like `No schema files found for path config ['./src/schema']`, open `packages/db/drizzle.config.ts` and make sure the `schema` setting points to a file with an extension (e.g., `"./src/schema.ts"`) or to a directory containing `.ts` schema files.
+
 ### 4. Start Development
 
 ```bash
