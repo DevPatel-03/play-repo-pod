@@ -2,6 +2,30 @@
 
 This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Router, Express, TRPC, and more.
 
+## 🆕 Google GenAI OCR Integration
+
+This project now includes **Google Gemini 2.0 Flash** integration for OCR extraction from proof of delivery (POD) receipt PDFs with handwritten text recognition.
+
+### Quick Links
+- 📚 **[Quick Start Guide](QUICK_START_GUIDE.md)** - Step-by-step implementation guide
+- 📦 **[Dependencies Guide](DEPENDENCIES.md)** - Required packages and installation
+- 📖 **[Full Documentation](docs/GOOGLE_GENAI_INTEGRATION.md)** - Comprehensive integration guide
+
+### Key Features
+- ✅ Extract handwritten data from PDF receipts
+- ✅ Structured data storage (containers, dates, locations)
+- ✅ Token usage tracking for cost monitoring
+- ✅ Multi-page PDF support
+- ✅ tRPC API endpoints for document management
+- 📝 TODO placeholders ready for your prompt implementation
+
+### Database Schema Includes
+- `users` - User management
+- `companies` & `branches` - Organization structure
+- `upload_documents` - Document tracking with extraction status
+- `extracted_page_data` - OCR results per page
+- `document_token_usage` - API usage monitoring
+
 ## Features
 
 - **TypeScript** - For type safety and improved developer experience
@@ -27,13 +51,24 @@ bun install
 
 This project uses PostgreSQL with Drizzle ORM.
 
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
+1. Ensure you have a PostgreSQL database available.
+2. Copy the example env and update secrets:
 
-3. Apply the schema to your database:
 ```bash
-bun run db:push
+cp apps/server/.env.example apps/server/.env
+# then edit apps/server/.env and set:
+# DATABASE_URL=postgresql://user:password@host:port/database
+# GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
 ```
+
+3. Generate migrations and apply them to your database:
+
+```bash
+bun run db:generate   # creates SQL migration(s) in packages/db/src/migrations
+bun run db:push       # applies migrations to DATABASE_URL
+```
+
+**Troubleshooting:** If you get `No schema files found for path config ['./src/schema']`, update `packages/db/drizzle.config.ts` to point to the schema file (e.g., `schema: "./src/schema.ts"`) or to a directory that contains `.ts` schema files.
 
 
 Then, run the development server:

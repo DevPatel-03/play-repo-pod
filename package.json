@@ -14,7 +14,11 @@
 			"dotenv": "^17.2.2",
 			"@types/express": "^5.0.1",
 			"@trpc/client": "^11.5.0",
-			"drizzle-orm": "^0.44.2"
+			"drizzle-orm": "^0.44.2",
+			"pdf-parse": "^1.1.1",
+			"pdf-lib": "^1.17.1",
+			"canvas": "^2.11.2",
+			"pdfjs-dist": "^4.0.379"
 		}
 	},
 	"scripts": {
